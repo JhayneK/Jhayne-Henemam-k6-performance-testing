@@ -1,0 +1,41 @@
+name: Prova Teste K6
+
+on:
+  push:
+    branches: [ main ]  
+  workflow_dispatch:    
+
+jobs:
+  k6-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checar código do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  
+
+      - name: Instalar K6
+        run: |
+          sudo apt update
+          sudo apt install -y gnupg software-properties-common
+          sudo wget -qO - https://dl.k6.io/key.gpg | sudo apt-key add -
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt update
+          sudo apt install -y k6
+
+      - name: Instalar Dependências do Projeto
+        run: npm install
+
+      - name: Executar Teste K6
+        run: k6 run teste.js
+
+      - name: Publicar Relatório HTML
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Relatorio-K6
+          path: ./src/output/index.html
